@@ -1,0 +1,26 @@
+CTexEd is a Colloborative Text Editor built using Nodejs and Websocket Library. 
+
+Preqequisites:
+Install nodejs on server by running install script from https://github.com/malliks/demo/raw/master/install.sh
+Install the Websocket Library by running script from https://github.com/malliks/ctexed/raw/master/node-ws.sh
+
+Working Demo can be found ar http://ctexed.mazic.in/ctexed.html
+
+Project consist of Server part (ctexedserver.js) and the client html (ctexed.html)
+
+Ctexted uses the Websocket Library and hence works only on some of the browser which support websocket capabilities.
+CTexEd works fine on Chrome 4 and also on FF4 provided you enable the websocket.
+To enable on FF
+1. Type about:config in address bar and continue by clicking “I’ll be careful, I promise”
+
+2. Set network.websocket.enabled value to true and set network.websocket.override-security-block preferences to true.
+
+3. Restart Firefox browser.
+
+Limitations:
+- Ctexed is a very basic version which currently works based on keyboard events, mouse events for seleting/deleting multiple characters are not supported currently
+- Chrome browser has some issue with the backspace keypress, need to fix it using keyup event for chrom browser
+- User management and doc management are not present currently.
+
+We are working on all the above limitations and will soon be implementing them.
+

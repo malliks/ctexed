@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>CTexEd</title>
+<script type="text/javascript" src="jquery-1.5.1.min.js"></script>
+<style>
+fieldset {
+	width:700px;
+border: 1px dashed #aaa;
+}
+textarea{
+background-color:#eeeeff
+}
+</style>
+</head>
+<body>
+<h2>CTexEd: Colloborative Text Editor</h2>
+<div id="ucount" style="display:none"></div>
+<div id="realtime" style="display:none"></div>
+<div id="texteditor" style="display:none">
+<form>
+<fieldset>
+<legend>Collaborative editor</legend>
+<textarea id="ctexed" rows="30" cols="163"/></textarea>
+Note : the file gets automatically saved at the server
+</fieldset>
+</form>
+</div>
+<div id="name">
+<form id="nameform">
+<fieldset>
+<legend>Collaborative editor</legend>
+Name: <input type=text  id="nametxt"/></input>
+<input type="submit" value="start editing"></input>
+</fieldset>
+</form>
+</div>
+<script type="text/javascript">
+var conn;
+var username;
+var cursorPos;
+var connect = function() {
+	conn = new WebSocket("ws://tv.mazic.in:8000");
+	conn.onmessage = function(evt) {
+		data = evt.data;
+		//Add update logic here  
+		message = JSON.parse(evt.data);
+		if(message['action']=='init')
+		{
+			$('#ctexed').val(message['data']); 
+		}
+		if(message['action']=='docupdate')
+		{
+			//update the file content
+			var filecontent= $('#ctexed').val(); 
+			cursorPos=getCaret(document.getElementById("ctexed"));
+                        filecontent=updateDoc(filecontent,message['key'],message['pos']);
+			data=filecontent;
+			$('#ctexed').val(data); 
+			setCaret(document.getElementById("ctexed"),cursorPos);
+		}
+
+		if(message['action']=='usercount')
+			$("#ucount").html(message['users']+ ' user(s) opened the file');
+		if(message['action']=='realtime')
+			$("#realtime").html(message['text']);
+	}
+};
+window.onload = connect;
+$(window).unload(function() {
+  conn.close();
+  alert('bye for now');
+	conn.close();
+});
+$('#ctexed').keypress(function(e) 
+		{
+		var key = (e.keyCode ? e.keyCode : e.which);
+		var pos=getCaret(document.getElementById("ctexed"));
+		//alert(key+"  "+pos);
+		if (conn) {
+		conn.send(JSON.stringify({
+				'action': 'change',
+				'key': key,
+				'pos': pos,
+				'uname': username
+				}));
+		}  
+		});
+$('#nameform').submit(function(){
+		$('#name').hide();
+		if (conn) {
+		conn.send(JSON.stringify({
+				'action': 'register',
+				'uname': $('#nametxt').val(),
+				}));
+		}  
+		username=$('#nametxt').val();
+		$('#texteditor').show();
+		$('#realtime').show();
+		$('#ucount').show();
+		return false;
+		});
+ function getCaret(el) {
+	  if (el.selectionStart) {
+		return el.selectionStart;
+	} else if (document.selection) {
+		el.focus();
+
+		var r = document.selection.createRange();
+		if (r == null) {
+			return 0;
+		}
+
+		var re = el.createTextRange(),
+		    rc = re.duplicate();
+		re.moveToBookmark(r.getBookmark());
+		rc.setEndPoint('EndToStart', re);
+
+		return rc.text.length;
+	} 
+	return 0;
+}
+	function setCaret(ctrl, pos){
+		if(ctrl.setSelectionRange)
+		{
+			ctrl.focus();
+			ctrl.setSelectionRange(pos,pos);
+		}
+		else if (ctrl.createTextRange) {
+			var range = ctrl.createTextRange();
+			range.collapse(true);
+			range.moveEnd('character', pos);
+			range.moveStart('character', pos);
+			range.select();
+		}
+	}
+function updateDoc(filecontent,key,pos)
+{
+        if(key==46)
+        {
+                if(pos < cursorPos)
+                        cursorPos--;
+                filecontent=filecontent.substr(0, pos)+filecontent.substr(pos+1);
+                return filecontent;
+        }
+        if(key>=37 && key <=40)
+                return filecontent;
+        if(key>=33 && key <= 126)
+        {
+                        if(pos < cursorPos)
+                           cursorPos++;
+                        var actualChar=String.fromCharCode(key);
+                        filecontent=filecontent.substr(0, pos)+actualChar+filecontent.substr(pos);
+        }
+        if(key==13)
+        {
+                 if(pos < cursorPos)
+                       cursorPos++;
+                filecontent=filecontent.substr(0, pos)+'\n'+filecontent.substr(pos);
+        }
+        if(key==32)
+        {
+                 if(pos < cursorPos)
+                       cursorPos++;
+                filecontent=filecontent.substr(0, pos)+' '+filecontent.substr(pos);
+        }
+        if(key==8)
+        {
+                if(pos < cursorPos)
+                        cursorPos--;
+                filecontent=filecontent.substr(0, pos-1)+filecontent.substr(pos);
+        }
+        return filecontent;
+}
+
+</script>
+</body>
+</html>
