@@ -1,5 +1,5 @@
 //Colloborative Text Editor Author#Mallik
-var ws=require('/var/www/mytv/ctexed/lib/ws/server');
+var ws=require('/var/www/ctexed/lib/ws/server');
 var server = ws.createServer();
 //Number of people  editing/viewing the file
 var connectedusers=0;
@@ -32,12 +32,10 @@ server.addListener("connection", function(conn){
 			}
 
 		});
+                conn.addListener("close",function(){
+                connectedusers--;
+                 });
 });
-
-server.addListener("close", function(conn){
-		connectedusers--;
-		conn.broadcast(JSON.stringify({'action':'usercount','users': connectedusers}));
-		});
 
 server.listen(8000);
 function updateDoc(filecontent,key,pos)

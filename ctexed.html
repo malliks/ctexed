@@ -41,7 +41,7 @@ var conn;
 var username;
 var cursorPos;
 var connect = function() {
-	conn = new WebSocket("ws://tv.mazic.in:8000");
+	conn = new WebSocket("ws://ctexed.mazic.in:8000");
 	conn.onmessage = function(evt) {
 		data = evt.data;
 		//Add update logic here  
@@ -69,8 +69,6 @@ var connect = function() {
 };
 window.onload = connect;
 $(window).unload(function() {
-  conn.close();
-  alert('bye for now');
 	conn.close();
 });
 $('#ctexed').keypress(function(e) 
